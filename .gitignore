@@ -33,3 +33,5 @@
 *.su
 
 .vscode/
+
+esp8266/credentials\.h
