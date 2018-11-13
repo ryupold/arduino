@@ -81,23 +81,23 @@ bool process(WiFiClient client, unsigned long connectedSince, String &currentLin
       //--- CONTENT -------------------------------------------------------------------------------
 
       // Display the HTML web page
-      client.println("<!DOCTYPE html><html>");
-      client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-      client.println("<link rel=\"icon\" href=\"data:,\">");
+      // client.println("<!DOCTYPE html><html>");
+      // client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+      // client.println("<link rel=\"icon\" href=\"data:,\">");
 
-      // Web Page Heading
-      client.println("<body><h1>ESP8266 Web Server</h1>");
+      // // Web Page Heading
+      // client.println("<body><h1>ESP8266 Web Server</h1>");
 
-      int value = analogRead(sensorPin);
-      Serial.println(value);
-      client.print("<p>");
-      client.print(value);
-      client.println("</p>");
-      client.print("<p>");
+      // int value = analogRead(sensorPin);
+      // Serial.println(value);
+      // client.print("<p>");
+      // client.print(value);
+      // client.println("</p>");
+      // client.print("<p>");
       client.print(millis());
-      client.println("ms</p>");
+      // client.println("ms</p>");
 
-      client.println("</body></html>");
+      // client.println("</body></html>");
 
       client.println(); // The HTTP response ends with another blank line
       //--- END OF COMMUNICATION ------------------------------------------------------------------
