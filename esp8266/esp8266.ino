@@ -1,8 +1,8 @@
 #include "credentials.h"
 #include <arduino.h>
 #include <ESP8266WiFi.h>
+#include <Esp.h>
 
-int sensorPin = A0;
 WiFiServer server(80); //define webserver on port 80
 
 String header;
@@ -19,40 +19,75 @@ void setup()
   Serial.print("Connecting");
   while (WiFi.status() != WL_CONNECTED)
   {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(100);
-    digitalWrite(LED_BUILTIN, LOW);
+    blink(250);
   }
   Serial.println();
 
   Serial.print("Connected, IP address: ");
   Serial.println(WiFi.localIP());
-  digitalWrite(LED_BUILTIN, HIGH);
+  led(false);
+
+  // this option is usefull when you want to send requests the webserver rapidly
+  server.setNoDelay(true);
 
   server.begin(); //start webserver
 }
 
+void led(bool on)
+{
+  if (on)
+    digitalWrite(LED_BUILTIN, LOW);
+  else
+    digitalWrite(LED_BUILTIN, HIGH);
+}
+
+void blink(unsigned long ms)
+{
+  led(true);
+  delay(ms);
+  led(false);
+}
+
 void loop()
 {
-  WiFiClient client = server.available(); // Listen for incoming clients
+  while(handleClients(60 * 1000)){} //let clients connect for a minute
 
-  if (client)
-  {                                // If a new client connects,
-    Serial.println("New Client."); // print a message out in the serial port
-    String currentLine = "";       // make a String to hold incoming data from the client
-    unsigned long connectedSince = millis();
-    while (client.connected() && process(client, connectedSince, currentLine))
-    {
-      // loop while the client's connected
+  Serial.println("going into deep sleep");
+  ESP.deepSleep(10 * 60e6);
+}
+
+int handleClients(unsigned long ms)
+{
+  int count = 0;
+  unsigned long start = millis();
+
+  do
+  {
+    WiFiClient client = server.available(); // Listen for incoming clients
+
+    if (client)
+    { // If a new client connects,
+      count++;
+      led(true);
+      Serial.println("New Client."); // print a message out in the serial port
+      String currentLine = "";       // make a String to hold incoming data from the client
+      unsigned long connectedSince = millis();
+      while (client.connected() && process(client, connectedSince, currentLine))
+      {
+        // loop while the client's connected
+      }
+      // Clear the header variable
+      header = "";
+      currentLine = "";
+      // Close the connection
+      client.stop();
+      Serial.println("Client disconnected.");
+      Serial.println("");
+      led(false);
     }
-    // Clear the header variable
-    header = "";
-    currentLine = "";
-    // Close the connection
-    client.stop();
-    Serial.println("Client disconnected.");
-    Serial.println("");
-  }
+  } while (millis() - start < ms);
+
+  return count;
 }
 
 bool process(WiFiClient client, unsigned long connectedSince, String &currentLine)
@@ -75,29 +110,12 @@ bool process(WiFiClient client, unsigned long connectedSince, String &currentLin
     {
       //--- HEADER --------------------------------------------------------------------------------
       client.println("HTTP/1.1 200 OK");
-      client.println("Content-type:text/html");
+      client.println("Content-type:text/plain");
       client.println("Connection: close");
       client.println();
       //--- CONTENT -------------------------------------------------------------------------------
 
-      // Display the HTML web page
-      // client.println("<!DOCTYPE html><html>");
-      // client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-      // client.println("<link rel=\"icon\" href=\"data:,\">");
-
-      // // Web Page Heading
-      // client.println("<body><h1>ESP8266 Web Server</h1>");
-
-      // int value = analogRead(sensorPin);
-      // Serial.println(value);
-      // client.print("<p>");
-      // client.print(value);
-      // client.println("</p>");
-      // client.print("<p>");
-      client.print(millis());
-      // client.println("ms</p>");
-
-      // client.println("</body></html>");
+      client.print(analogRead(A0));
 
       client.println(); // The HTTP response ends with another blank line
       //--- END OF COMMUNICATION ------------------------------------------------------------------
